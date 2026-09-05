@@ -1,11 +1,11 @@
 import { useState } from "react"
-import { Title } from "../../../components/ui/Title"
-import { Input } from "../../../components/ui/Input"
-import { Button } from "../../../components/ui/Button"
-import { useToggle } from "../../../hooks/useToggle"
-import { EyeIcon, EyeOffIcon } from "../../../components/ui/icons/EyeIcon"
+import { Title } from "@/components/ui/Title"
+import { Input } from "@/components/ui/Input"
+import { Button } from "@/components/ui/Button"
+import { useToggle } from "@/hooks/useToggle"
+import { EyeIcon, EyeOffIcon } from "@/components/ui/icons/EyeIcon"
 
-export function Logout() {
+export function LoginForm() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const { visible, toggle } = useToggle(false)
@@ -16,11 +16,10 @@ export function Logout() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100 dark:bg-gray-900 p-4">
-      <form
-        onSubmit={handleSubmit}
-        className="flex flex-col gap-4 w-full max-w-sm bg-white dark:bg-gray-800 p-6 rounded-xl shadow-md dark:shadow-none border dark:border-gray-700"
-      >
+    <form
+      onSubmit={handleSubmit}
+      className="flex flex-col gap-4 w-full max-w-sm bg-white dark:bg-gray-800 p-6 rounded-xl shadow-md dark:shadow-none border dark:border-gray-700"
+    >
         <div className="flex items-center justify-center">
           <Title text="Iniciar sesión" />
         </div>
@@ -51,7 +50,6 @@ export function Logout() {
           }
         />
         <Button type="submit">Entrar</Button>
-      </form>
-    </div>
+    </form>
   )
 }
