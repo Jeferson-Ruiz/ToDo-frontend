@@ -1,4 +1,5 @@
 import { useState } from "react"
+import { Link } from "react-router-dom"
 import { Title } from "@/components/ui/Title"
 import { Input } from "@/components/ui/Input"
 import { Button } from "@/components/ui/Button"
@@ -50,6 +51,12 @@ export function LoginForm() {
           }
         />
         <Button type="submit">Entrar</Button>
+        <Link
+          to="/forgot-password"
+          className="text-sm text-blue-600 dark:text-blue-400 hover:underline text-center"
+        >
+          ¿Olvidaste tu contraseña?
+        </Link>
     </form>
   )
 }
