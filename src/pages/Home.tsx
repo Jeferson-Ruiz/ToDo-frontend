@@ -16,10 +16,7 @@ export function Home() {
         <div className="absolute -top-32 left-1/2 h-[520px] w-[900px] -translate-x-1/2 rounded-full bg-gradient-to-r from-blue-600/20 via-indigo-500/15 to-violet-500/20 blur-3xl" />
       </div>
 
-      <Header
-        onLoginClick={() => navigate("/login")}
-        onCreateAccountClick={() => navigate("/register")}
-      />
+      <Header actions={[{ label: "Iniciar sesión", to: "/login" }, { label: "Crear cuenta", to: "/register" }]} />
 
       <main className="flex-1 flex flex-col">
         <section className="mx-auto max-w-6xl w-full px-6 pt-10 pb-12 lg:pt-14 lg:pb-14 flex-1 flex items-center">
