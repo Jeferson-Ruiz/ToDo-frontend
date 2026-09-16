@@ -96,7 +96,10 @@ export function TaskDetailModal({ task, open, onClose, onDelete, onUpdate }: Tas
             </div>
           </div>
         </div>
-
+        <div className="flex justify-end gap-3 pt-4 border-t border-gray-100 dark:border-gray-800">
+          <UpdateButton onClick={() => onUpdate?.(task)} ariaLabel={`Actualizar ${task.title}`} />
+          <DeleteButton onClick={() => onDelete?.(task)} ariaLabel={`Eliminar ${task.title}`} />
+        </div>
 
       </div>
     </Modal>
