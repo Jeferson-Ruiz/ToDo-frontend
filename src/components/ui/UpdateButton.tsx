@@ -6,6 +6,7 @@ interface UpdateButtonProps {
   ariaLabel?: string
   label?: string
   className?: string
+  type?: "button" | "submit"
 }
 
 export function UpdateButton({
@@ -14,10 +15,11 @@ export function UpdateButton({
   ariaLabel = "Actualizar",
   label = "Actualizar",
   className,
+  type = "button",
 }: UpdateButtonProps) {
   return (
     <button
-      type="button"
+      type={type}
       onClick={onClick}
       disabled={disabled}
       aria-label={ariaLabel}
