@@ -6,7 +6,6 @@ import { UpdateButton } from "@/components/ui/UpdateButton"
 import type { TaskEssential } from "@/features/task/types/taskEssential"
 import { STATUS_STYLES, PRIORITY_STYLES, capitalize } from "@/features/task/utils/taskStyles"
 import { TaskEditForm } from "@/features/task/components/TaskEditForm"
-import { useTaskEditing } from "@/features/task/hooks/useTaskEditing"
 
 interface TaskDetailModalProps {
   task: TaskEssential | null
@@ -17,7 +16,9 @@ interface TaskDetailModalProps {
 
 export function TaskDetailModal({ task, open, onClose, onUpdate }: TaskDetailModalProps) {
   const [confirmOpen, setConfirmOpen] = useState(false)
-  const { isEditing, startEditing, stopEditing } = useTaskEditing(open, task?.id ?? null)
+  const [isEditing, setIsEditing] = useState(false)
+  const startEditing = () => setIsEditing(true)
+  const stopEditing = () => setIsEditing(false)
 
   if (!task) return null
 
@@ -39,7 +40,7 @@ export function TaskDetailModal({ task, open, onClose, onUpdate }: TaskDetailMod
   return (
     <Modal open={open} onClose={handleClose} ariaLabel={task.title}>
       {isEditing ? (
-        <TaskEditForm task={task} onCancel={stopEditing} onSave={handleSave} />
+        <TaskEditForm key={task.id ?? task.title} task={task} onCancel={stopEditing} onSave={handleSave} />
       ) : (
         <div className="space-y-5">
           <div className="pr-8">
