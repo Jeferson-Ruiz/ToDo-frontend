@@ -9,9 +9,15 @@ interface TaskEssentialListProps {
   tasks: TaskEssential[]
 }
 
-export function TaskEssentialList({ tasks }: TaskEssentialListProps) {
+export function TaskEssentialList({ tasks: initialTasks }: TaskEssentialListProps) {
   const { toggle, isSelected } = useSelection<string | number>()
+  const [tasks, setTasks] = useState<TaskEssential[]>(initialTasks)
   const [detailTask, setDetailTask] = useState<TaskEssential | null>(null)
+
+  const handleUpdate = (updated: TaskEssential) => {
+    setTasks((prev) => prev.map((t) => (t.id != null && updated.id != null ? (t.id === updated.id ? updated : t) : t.title === updated.title ? updated : t)))
+    setDetailTask(updated)
+  }
 
   if (tasks.length === 0) {
     return <p className="text-sm text-gray-500 dark:text-gray-400">No hay tareas</p>
@@ -81,7 +87,7 @@ export function TaskEssentialList({ tasks }: TaskEssentialListProps) {
         )
       })}
       </div>
-      <TaskDetailModal task={detailTask} open={!!detailTask} onClose={() => setDetailTask(null)} />
+      <TaskDetailModal task={detailTask} open={!!detailTask} onClose={() => setDetailTask(null)} onUpdate={handleUpdate} />
     </>
   )
 }
