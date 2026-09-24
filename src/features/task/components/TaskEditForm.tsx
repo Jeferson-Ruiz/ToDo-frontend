@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/Input"
 import { Button } from "@/components/ui/Button"
 import { UpdateButton } from "@/components/ui/UpdateButton"
 import { FormSelect } from "@/components/ui/FormSelect"
+import { DateTimePicker } from "@/components/ui/DateTimePicker"
 import type { FormSelectOption } from "@/components/ui/FormSelect"
 
 const CATEGORY_OPTIONS: readonly FormSelectOption[] = [{ value: "", label: "Sin categoría" }] as const
@@ -79,6 +80,12 @@ export function TaskEditForm({ task, onCancel, onSave }: TaskEditFormProps) {
           value={draft.category ?? ""}
           options={CATEGORY_OPTIONS}
           onChange={(v) => setDraft((p) => ({ ...p, category: v ? v : null }))}
+        />
+
+        <DateTimePicker
+          label="Fecha límite"
+          value={draft.deadline ?? null}
+          onChange={(v) => setDraft((p) => ({ ...p, deadline: v }))}
         />
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
