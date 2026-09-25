@@ -4,6 +4,7 @@ import { Login } from "@/pages/Login"
 import { Register } from "@/pages/Register"
 import { ForgotPassword } from "@/pages/ForgotPassword"
 import { Tasks } from "@/pages/Tasks"
+import { TaskCreate } from "@/pages/TaskCreate"
 
 export const router = createBrowserRouter([
   { path: "/", element: <Home /> },
@@ -11,4 +12,5 @@ export const router = createBrowserRouter([
   { path: "/register", element: <Register /> },
   { path: "/forgot-password", element: <ForgotPassword /> },
   { path: "/tasks", element: <Tasks /> },
+  { path: "/tasks/create", element: <TaskCreate /> },
 ])
