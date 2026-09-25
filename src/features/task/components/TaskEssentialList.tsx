@@ -1,6 +1,9 @@
 import { useState } from "react"
+import { useNavigate } from "react-router-dom"
 import type { TaskEssential } from "@/features/task/types/taskEssential"
 import { TaskSelectButton } from "@/components/ui/TaskSelectButton"
+import { Button } from "@/components/ui/Button"
+import { Card, CardContent, CardHeader } from "@/components/ui/Card"
 import { useSelection } from "@/hooks/useSelection"
 import { TaskDetailModal } from "@/features/task/components/TaskDetailModal"
 import { STATUS_STYLES, PRIORITY_STYLES, capitalize } from "@/features/task/utils/taskStyles"
@@ -10,6 +13,7 @@ interface TaskEssentialListProps {
 }
 
 export function TaskEssentialList({ tasks: initialTasks }: TaskEssentialListProps) {
+  const navigate = useNavigate()
   const { toggle, isSelected } = useSelection<string | number>()
   const [tasks, setTasks] = useState<TaskEssential[]>(initialTasks)
   const [detailTask, setDetailTask] = useState<TaskEssential | null>(null)
@@ -20,12 +24,39 @@ export function TaskEssentialList({ tasks: initialTasks }: TaskEssentialListProp
   }
 
   if (tasks.length === 0) {
-    return <p className="text-sm text-gray-500 dark:text-gray-400">No hay tareas</p>
+    return (
+      <Card>
+        <CardHeader>
+          <h2 className="text-sm font-bold tracking-tight text-gray-900 dark:text-white">Tareas</h2>
+          <Button
+            onClick={() => navigate("/tasks/create")}
+            className="inline-flex items-center justify-center rounded-full bg-blue-600 px-4 py-1.5 text-xs font-semibold text-white hover:bg-blue-700 shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+          >
+            Nueva tarea
+          </Button>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-center py-8 text-gray-500 dark:text-gray-400">No hay tareas</p>
+        </CardContent>
+      </Card>
+    )
   }
 
   return (
     <>
-      <div className="space-y-3">
+      <Card>
+        <CardHeader>
+          <h2 className="text-sm font-bold tracking-tight text-gray-900 dark:text-white">Tareas</h2>
+          <Button
+            onClick={() => navigate("/tasks/create")}
+            className="inline-flex items-center justify-center rounded-full bg-blue-600 px-4 py-1.5 text-xs font-semibold text-white hover:bg-blue-700 shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+          >
+            Nueva tarea
+          </Button>
+        </CardHeader>
+        {/* futuro contenido*/}
+        <CardContent>
+          <div className="space-y-3">
         {tasks.map((task) => {
           const checked = task.id != null && isSelected(task.id)
           return (
@@ -85,8 +116,11 @@ export function TaskEssentialList({ tasks: initialTasks }: TaskEssentialListProp
           </div>
         </div>
         )
-      })}
-      </div>
+          })}
+          </div>
+        </CardContent>
+        {/* futura paginación*/}
+      </Card>
       <TaskDetailModal task={detailTask} open={!!detailTask} onClose={() => setDetailTask(null)} onUpdate={handleUpdate} />
     </>
   )
