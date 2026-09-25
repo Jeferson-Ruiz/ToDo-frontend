@@ -5,6 +5,8 @@ import { Register } from "@/pages/Register"
 import { ForgotPassword } from "@/pages/ForgotPassword"
 import { Tasks } from "@/pages/Tasks"
 import { TaskCreate } from "@/pages/TaskCreate"
+import { Categories } from "@/pages/Categories"
+import { CategoryCreate } from "@/pages/CategoryCreate"
 
 export const router = createBrowserRouter([
   { path: "/", element: <Home /> },
@@ -13,4 +15,6 @@ export const router = createBrowserRouter([
   { path: "/forgot-password", element: <ForgotPassword /> },
   { path: "/tasks", element: <Tasks /> },
   { path: "/tasks/create", element: <TaskCreate /> },
+  { path: "/categories", element: <Categories /> },
+  { path: "/categories/create", element: <CategoryCreate /> },
 ])
