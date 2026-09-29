@@ -1,4 +1,3 @@
-import { Footer } from "@/components/layout/Footer"
 import { CategoryList } from "@/features/category/components/CategoryList"
 import type { Category } from "@/features/category/types/category"
 
@@ -16,12 +15,5 @@ interface CategoriesProps {
 }
 
 export function Categories({ categories = EXAMPLE_CATEGORIES }: CategoriesProps) {
-  return (
-    <div className="min-h-screen bg-[#f8f9fb] dark:bg-gray-950 text-gray-900 dark:text-white flex flex-col selection:bg-blue-600/20">
-      <main className="flex-1 mx-auto max-w-3xl w-full px-6 py-8">
-        <CategoryList categories={categories} />
-      </main>
-      <Footer />
-    </div>
-  )
+  return <CategoryList categories={categories} />
 }
