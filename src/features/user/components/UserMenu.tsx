@@ -1,3 +1,4 @@
+import { useNavigate } from "react-router-dom"
 import { useToggle } from "@/hooks/useToggle"
 import { UserInfoModal } from "@/features/user/components/UserInfoModal"
 import { UpdatePasswordModal } from "@/features/user/components/UpdatePasswordModal"
@@ -11,8 +12,11 @@ const EXAMPLE_USER: UserInfo = {
   dateCreation: "01/09/2026 09:00",
 }
 
+const EXAMPLE_TOKEN = "eyJhbGciOiJIUzI1NiJ9.exAMPLE"
+
 interface UserMenuProps {
   user?: UserInfo
+  token?: string
   onPersonalInfo?: () => void
   onUpdatePassword?: () => void
   onLogout?: () => void
@@ -20,10 +24,12 @@ interface UserMenuProps {
 
 export function UserMenu({
   user = EXAMPLE_USER,
+  token = EXAMPLE_TOKEN,
   onPersonalInfo,
   onUpdatePassword,
   onLogout,
 }: UserMenuProps) {
+  const navigate = useNavigate()
   const { visible: open, toggle, setVisible } = useToggle(false)
   const { visible: infoOpen, toggle: toggleInfo } = useToggle(false)
   const { visible: passwordOpen, toggle: togglePassword } = useToggle(false)
@@ -41,8 +47,10 @@ export function UserMenu({
   }
 
   const handleLogout = () => {
-    // TODO: cerrar sesión
+    setVisible(false)
+    console.log({ userId: user.id, token })
     onLogout?.()
+    navigate("/")
   }
 
   return (
