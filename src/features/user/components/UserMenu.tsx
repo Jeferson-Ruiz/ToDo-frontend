@@ -1,8 +1,10 @@
 import { useToggle } from "@/hooks/useToggle"
 import { UserInfoModal } from "@/features/user/components/UserInfoModal"
+import { UpdatePasswordModal } from "@/features/user/components/UpdatePasswordModal"
 import type { UserInfo } from "@/features/user/types/user"
 
 const EXAMPLE_USER: UserInfo = {
+  id: 1,
   name: "Jeferson Ruiz",
   email: "jeferson.ruiz@email.com",
   role: "USER",
@@ -24,6 +26,7 @@ export function UserMenu({
 }: UserMenuProps) {
   const { visible: open, toggle, setVisible } = useToggle(false)
   const { visible: infoOpen, toggle: toggleInfo } = useToggle(false)
+  const { visible: passwordOpen, toggle: togglePassword } = useToggle(false)
 
   const handlePersonalInfo = () => {
     setVisible(false)
@@ -32,7 +35,8 @@ export function UserMenu({
   }
 
   const handleUpdatePassword = () => {
-    // TODO: navegar a /update-password
+    setVisible(false)
+    togglePassword()
     onUpdatePassword?.()
   }
 
@@ -133,6 +137,11 @@ export function UserMenu({
       )}
 
       <UserInfoModal user={user} open={infoOpen} onClose={toggleInfo} />
+      <UpdatePasswordModal
+        userId={user.id}
+        open={passwordOpen}
+        onClose={togglePassword}
+      />
     </div>
   )
 }
