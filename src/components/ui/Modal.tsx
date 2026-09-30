@@ -1,4 +1,5 @@
 import { useModal } from "@/hooks/useModal"
+import { createPortal } from "react-dom"
 
 interface ModalProps {
   open: boolean
@@ -10,7 +11,7 @@ interface ModalProps {
 export function Modal({ open, onClose, ariaLabel, children }: ModalProps) {
   useModal(open, onClose)
   if (!open) return null
-  return (
+  return createPortal(
     <div
       className="fixed inset-0 z-50 flex items-center justify-center p-4"
       role="dialog"
@@ -34,6 +35,7 @@ export function Modal({ open, onClose, ariaLabel, children }: ModalProps) {
         </button>
         {children}
       </div>
-    </div>
+    </div>,
+    document.body,
   )
 }
