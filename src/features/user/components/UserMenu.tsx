@@ -2,20 +2,23 @@ import { useNavigate } from "react-router-dom"
 import { useToggle } from "@/hooks/useToggle"
 import { UserInfoModal } from "@/features/user/components/UserInfoModal"
 import { UpdatePasswordModal } from "@/features/user/components/UpdatePasswordModal"
-import type { UserInfo } from "@/features/user/types/user"
+import type { User } from "@/types/user"
 
-const EXAMPLE_USER: UserInfo = {
+const EXAMPLE_USER: User = {
   id: 1,
-  name: "Jeferson Ruiz",
+  name: "Jeferson",
+  lastName: "Ruiz",
+  username: "jeferson.ruiz",
   email: "jeferson.ruiz@email.com",
   role: "USER",
+  enabled: true,
   dateCreation: "01/09/2026 09:00",
 }
 
 const EXAMPLE_TOKEN = "eyJhbGciOiJIUzI1NiJ9.exAMPLE"
 
 interface UserMenuProps {
-  user?: UserInfo
+  user?: User
   token?: string
   onPersonalInfo?: () => void
   onUpdatePassword?: () => void
@@ -44,6 +47,11 @@ export function UserMenu({
     setVisible(false)
     togglePassword()
     onUpdatePassword?.()
+  }
+
+  const handleAdmin = () => {
+    setVisible(false)
+    navigate("/admin")
   }
 
   const handleLogout = () => {
@@ -124,6 +132,20 @@ export function UserMenu({
               <path d="M7 11V7a5 5 0 0 1 10 0v4" />
             </svg>
             Actualizar contraseña
+          </button>
+
+          <div className="my-1 h-px bg-gray-100 dark:bg-gray-800" role="separator" />
+
+          <button
+            type="button"
+            role="menuitem"
+            onClick={handleAdmin}
+            className="w-full text-left px-4 py-2.5 text-sm flex items-center gap-3 transition-colors text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10" />
+            </svg>
+            Administración
           </button>
 
           <div className="my-1 h-px bg-gray-100 dark:bg-gray-800" role="separator" />

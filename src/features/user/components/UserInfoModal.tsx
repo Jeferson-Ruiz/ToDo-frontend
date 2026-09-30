@@ -1,9 +1,9 @@
 import { Modal } from "@/components/ui/Modal"
 import { InfoRow } from "@/components/ui/InfoRow"
-import type { UserInfo } from "@/features/user/types/user"
+import type { User } from "@/types/user"
 
 interface UserInfoModalProps {
-  user: UserInfo | null
+  user: User | null
   open: boolean
   onClose: () => void
 }
