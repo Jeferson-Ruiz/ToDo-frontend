@@ -1,16 +1,33 @@
 import { useToggle } from "@/hooks/useToggle"
+import { UserInfoModal } from "@/features/user/components/UserInfoModal"
+import type { UserInfo } from "@/features/user/types/user"
+
+const EXAMPLE_USER: UserInfo = {
+  name: "Jeferson Ruiz",
+  email: "jeferson.ruiz@email.com",
+  role: "USER",
+  dateCreation: "01/09/2026 09:00",
+}
 
 interface UserMenuProps {
+  user?: UserInfo
   onPersonalInfo?: () => void
   onUpdatePassword?: () => void
   onLogout?: () => void
 }
 
-export function UserMenu({ onPersonalInfo, onUpdatePassword, onLogout }: UserMenuProps) {
-  const { visible: open, toggle } = useToggle(false)
+export function UserMenu({
+  user = EXAMPLE_USER,
+  onPersonalInfo,
+  onUpdatePassword,
+  onLogout,
+}: UserMenuProps) {
+  const { visible: open, toggle, setVisible } = useToggle(false)
+  const { visible: infoOpen, toggle: toggleInfo } = useToggle(false)
 
   const handlePersonalInfo = () => {
-    // TODO: navegar a /profile o abrir modal de información personal
+    setVisible(false)
+    toggleInfo()
     onPersonalInfo?.()
   }
 
@@ -114,6 +131,8 @@ export function UserMenu({ onPersonalInfo, onUpdatePassword, onLogout }: UserMen
           </button>
         </div>
       )}
+
+      <UserInfoModal user={user} open={infoOpen} onClose={toggleInfo} />
     </div>
   )
 }
