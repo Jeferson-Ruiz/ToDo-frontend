@@ -11,3 +11,11 @@ export interface TaskEssential {
   status?: TaskStatus | null
   priority?: TaskPriority | null
 }
+
+export interface TaskFilterValues {
+  status: string
+  priority: string
+  category: string
+  from: string | null
+  to: string | null
+}
