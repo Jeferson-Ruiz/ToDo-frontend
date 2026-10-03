@@ -14,7 +14,24 @@ interface DateTimePickerProps {
   disabled?: boolean
   required?: boolean
   timeStep?: number
+  withTime?: boolean
+  size?: "sm" | "md"
+  min?: string
+  max?: string
+  className?: string
+  labelPosition?: "top" | "inline"
 }
+
+const SIZES = {
+  sm: {
+    input: "text-xs pl-2.5 pr-7 py-1.5 rounded-lg",
+    label: "text-xs text-gray-500 dark:text-gray-400",
+  },
+  md: {
+    input: "text-sm px-3.5 py-2.5 rounded-xl",
+    label: "text-sm font-medium text-gray-700 dark:text-gray-200",
+  },
+} as const
 
 function split(value: string | null): { date: string; time: string } {
   if (!value) return { date: "", time: "" }
@@ -23,8 +40,12 @@ function split(value: string | null): { date: string; time: string } {
   return { date: parsed.format("YYYY-MM-DD"), time: parsed.format("HH:mm") }
 }
 
-function combine(date: string, time: string): string | null {
+function combine(date: string, time: string, withTime: boolean): string | null {
   if (!date) return null
+  if (!withTime) {
+    const onlyDate = dayjs(date, "YYYY-MM-DD", true)
+    return onlyDate.isValid() ? onlyDate.format("YYYY-MM-DD") : null
+  }
   const t = time || "00:00"
   const parsed = dayjs(`${date} ${t}`, "YYYY-MM-DD HH:mm", true)
   if (!parsed.isValid()) return null
@@ -40,6 +61,12 @@ export function DateTimePicker({
   disabled,
   required,
   timeStep = 15,
+  withTime = true,
+  size = "md",
+  min,
+  max,
+  className = "w-full",
+  labelPosition = "top",
 }: DateTimePickerProps) {
   const autoId = useId()
   const id = propId ?? autoId
@@ -64,24 +91,31 @@ export function DateTimePicker({
       onChange(null)
       return
     }
-    onChange(combine(newDate, time))
+    onChange(combine(newDate, time, withTime))
   }
 
   const handleTimeChange = (newTime: string) => {
     if (!date) return
     setTime(newTime)
-    onChange(combine(date, newTime))
+    onChange(combine(date, newTime, withTime))
   }
 
+  const styles = SIZES[size]
+
   const inputClassName =
-    "w-full border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-white rounded-xl px-3.5 py-2.5 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-600 dark:focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed [color-scheme:light] dark:[color-scheme:dark]"
+    `w-full min-w-0 border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-white shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-600 dark:focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed [color-scheme:light] dark:[color-scheme:dark] ${styles.input}`
 
   return (
-    <div className="flex flex-col gap-1">
-      <label htmlFor={`${id}-date`} className="text-sm font-medium text-gray-700 dark:text-gray-200">
-        {label} <span className="font-normal text-gray-500 dark:text-gray-400">(opcional)</span>
-      </label>
-      <div className="grid grid-cols-2 gap-2">
+    <div className={labelPosition === "inline" ? "flex flex-row items-center gap-1.5" : "flex flex-col gap-1"}>
+      {label && (
+        <label htmlFor={`${id}-date`} className={`${styles.label} shrink-0`}>
+          {label}{" "}
+          {labelPosition === "top" && size === "md" && !required && (
+            <span className="font-normal text-gray-500 dark:text-gray-400">(opcional)</span>
+          )}
+        </label>
+      )}
+      <div className={`grid ${withTime ? "grid-cols-2 gap-2" : "gap-1"} ${className}`}>
         <input
           id={`${id}-date`}
           name={name ? `${name}-date` : `${id}-date`}
@@ -90,19 +124,23 @@ export function DateTimePicker({
           onChange={(e) => handleDateChange(e.target.value)}
           disabled={disabled}
           required={required}
+          min={min}
+          max={max}
           className={inputClassName}
         />
-        <input
-          id={`${id}-time`}
-          name={name ? `${name}-time` : `${id}-time`}
-          type="time"
-          value={time}
-          onChange={(e) => handleTimeChange(e.target.value)}
-          disabled={disabled || !date}
-          required={required}
-          step={timeStep * 60}
-          className={inputClassName}
-        />
+        {withTime && (
+          <input
+            id={`${id}-time`}
+            name={name ? `${name}-time` : `${id}-time`}
+            type="time"
+            value={time}
+            onChange={(e) => handleTimeChange(e.target.value)}
+            disabled={disabled || !date}
+            required={required}
+            step={timeStep * 60}
+            className={inputClassName}
+          />
+        )}
       </div>
     </div>
   )
