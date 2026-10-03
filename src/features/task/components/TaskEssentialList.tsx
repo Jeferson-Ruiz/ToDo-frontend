@@ -1,12 +1,14 @@
 import { useState } from "react"
 import { useNavigate } from "react-router-dom"
 import type { TaskEssential } from "@/features/task/types/taskEssential"
+import { EMPTY_TASK_FILTERS } from "@/features/task/constants/taskOptions"
 import { TaskSelectButton } from "@/components/ui/TaskSelectButton"
 import { Button } from "@/components/ui/Button"
 import { SearchInput } from "@/components/ui/SearchInput"
 import { Card, CardContent, CardHeader } from "@/components/ui/Card"
 import { useSelection } from "@/hooks/useSelection"
 import { TaskDetailModal } from "@/features/task/components/TaskDetailModal"
+import { TaskFilters } from "@/features/task/components/TaskFilters"
 import { STATUS_STYLES, PRIORITY_STYLES, capitalize } from "@/features/task/utils/taskStyles"
 
 interface TaskEssentialListProps {
@@ -19,34 +21,37 @@ export function TaskEssentialList({ tasks: initialTasks }: TaskEssentialListProp
   const [tasks, setTasks] = useState<TaskEssential[]>(initialTasks)
   const [detailTask, setDetailTask] = useState<TaskEssential | null>(null)
   const [query, setQuery] = useState("")
+  const [filters, setFilters] = useState(EMPTY_TASK_FILTERS)
 
   const handleUpdate = (updated: TaskEssential) => {
     setTasks((prev) => prev.map((t) => (t.id != null && updated.id != null ? (t.id === updated.id ? updated : t) : t.title === updated.title ? updated : t)))
     setDetailTask(updated)
   }
 
-  // TODO: al conectar GET /task/name?name= usar useDebouncedValue(query, 300)
-  // aqui. El backend normaliza con TextFormat.nameFormat (capitaliza y baja
-  // el resto), asi que la busqueda real puede no ser case-insensitive.
-
   return (
     <>
       <Card>
         <CardHeader>
-          <h2 className="text-sm font-bold tracking-tight text-gray-900 dark:text-white">Tareas</h2>
-          <div className="ml-auto flex items-center gap-3">
-            <SearchInput
-              value={query}
-              onChange={setQuery}
-              label="Buscar tarea por nombre"
-              placeholder="Buscar tarea..."
-            />
-            <Button
-              onClick={() => navigate("/tasks/create")}
-              className="inline-flex items-center justify-center rounded-full bg-blue-600 px-4 py-1.5 text-xs font-semibold text-white hover:bg-blue-700 shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
-            >
-              Nueva tarea
-            </Button>
+          <div className="flex w-full flex-col gap-3">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <h2 className="text-sm font-bold tracking-tight text-gray-900 dark:text-white">Tareas</h2>
+              <div className="flex items-center gap-2">
+                <SearchInput
+                  value={query}
+                  onChange={setQuery}
+                  label="Buscar tarea por nombre"
+                  placeholder="Buscar tarea..."
+                  className="w-40 sm:w-56"
+                />
+                <Button
+                  onClick={() => navigate("/tasks/create")}
+                  className="inline-flex shrink-0 items-center justify-center rounded-full bg-blue-600 px-4 py-1.5 text-xs font-semibold text-white hover:bg-blue-700 shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+                >
+                  Nueva tarea
+                </Button>
+              </div>
+            </div>
+            <TaskFilters value={filters} onChange={setFilters} />
           </div>
         </CardHeader>
         {/* futuro contenido*/}
