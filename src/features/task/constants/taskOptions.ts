@@ -1,3 +1,5 @@
+import type { TaskFilterValues } from "@/features/task/types/taskEssential"
+
 export const STATUS_OPTIONS = [
   { value: "", label: "Sin estado" },
   { value: "PENDIENTE", label: "Pendiente" },
@@ -11,3 +13,18 @@ export const PRIORITY_OPTIONS = [
   { value: "MEDIA", label: "Media" },
   { value: "ALTA", label: "Alta" },
 ] as const
+
+
+export const CATEGORY_OPTIONS = [
+  { value: "", label: "Todas" },
+  { value: "Prueba", label: "prueba" },
+
+] as const
+
+export const EMPTY_TASK_FILTERS: TaskFilterValues = {
+  status: "",
+  priority: "",
+  category: "",
+  from: null,
+  to: null,
+}
