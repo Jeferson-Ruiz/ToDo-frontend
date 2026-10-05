@@ -4,3 +4,8 @@ export interface Category {
   description?: string | null
   dateCreation?: string | null
 }
+
+export interface CategoryFilterValues {
+  from: string | null
+  to: string | null
+}
