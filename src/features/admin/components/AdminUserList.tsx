@@ -1,10 +1,17 @@
 import { useState } from "react"
 import { useNavigate } from "react-router-dom"
 import type { User } from "@/types/user"
+import { ROLE_OPTIONS } from "@/types/user"
 import { TaskSelectButton } from "@/components/ui/TaskSelectButton"
 import { Button } from "@/components/ui/Button"
 import { Card, CardContent, CardHeader } from "@/components/ui/Card"
+import { SearchInput } from "@/components/ui/SearchInput"
+import { FormSelect } from "@/components/ui/FormSelect"
+import { Pagination } from "@/components/ui/Pagination"
+import { DateRangeFilter } from "@/components/ui/DateRangeFilter"
+import type { DateRangeValues } from "@/components/ui/DateRangeFilter"
 import { useSelection } from "@/hooks/useSelection"
+import { usePagination } from "@/hooks/usePagination"
 import { AdminUserDetailModal } from "@/features/admin/components/AdminUserDetailModal"
 import {
   ROLE_STYLES,
@@ -18,51 +25,92 @@ interface AdminUserListProps {
   users: User[]
 }
 
+const ROLE_FILTER_OPTIONS = [{ value: "", label: "Todos" }, ...ROLE_OPTIONS]
+
 export function AdminUserList({ users: initialUsers }: AdminUserListProps) {
   const navigate = useNavigate()
   const { toggle, isSelected } = useSelection<string | number>()
   const [users, setUsers] = useState<User[]>(initialUsers)
   const [detailUser, setDetailUser] = useState<User | null>(null)
+  const [query, setQuery] = useState("")
+  const [role, setRole] = useState("")
+  // Placeholder para el futuro backend: se guarda from/to pero no filtra en local.
+  const [filters, setFilters] = useState<DateRangeValues>({ from: null, to: null })
+
+  // Filtros independientes: solo uno aplica a la vez (búsqueda o rol).
+  const normalizedQuery = query.trim().toLowerCase()
+  const filteredUsers = normalizedQuery
+    ? users.filter((u) => fullName(u).toLowerCase().includes(normalizedQuery))
+    : role
+      ? users.filter((u) => u.role === role)
+      : users
+
+  const { page, totalPages, visibleItems: visibleUsers, setPage, resetPage } = usePagination(filteredUsers, 5)
+
+  const handleSearch = (value: string) => {
+    setQuery(value)
+    setRole("")
+    resetPage()
+  }
+
+  const handleRoleChange = (value: string) => {
+    setRole(value)
+    setQuery("")
+    resetPage()
+  }
+
+  const handleFiltersChange = (value: DateRangeValues) => {
+    setFilters(value)
+    resetPage()
+  }
 
   const handleUpdate = (updated: User) => {
     setUsers((prev) => prev.map((u) => (u.id === updated.id ? updated : u)))
     setDetailUser(updated)
   }
 
-  if (users.length === 0) {
-    return (
-      <Card>
-        <CardHeader>
-          <h2 className="text-sm font-bold tracking-tight text-gray-900 dark:text-white">Usuarios</h2>
-          <Button
-            onClick={() => navigate("/admin/users/create")}
-            className="inline-flex items-center justify-center rounded-full bg-blue-600 px-4 py-1.5 text-xs font-semibold text-white hover:bg-blue-700 shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
-          >
-            Nuevo usuario
-          </Button>
-        </CardHeader>
-        <CardContent>
-          <p className="text-sm text-center py-8 text-gray-500 dark:text-gray-400">No hay usuarios</p>
-        </CardContent>
-      </Card>
-    )
-  }
-
   return (
     <>
       <Card>
         <CardHeader>
-          <h2 className="text-sm font-bold tracking-tight text-gray-900 dark:text-white">Usuarios</h2>
-          <Button
-            onClick={() => navigate("/admin/users/create")}
-            className="inline-flex items-center justify-center rounded-full bg-blue-600 px-4 py-1.5 text-xs font-semibold text-white hover:bg-blue-700 shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
-          >
-            Nuevo usuario
-          </Button>
+          <div className="flex w-full flex-col gap-3">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <h2 className="text-sm font-bold tracking-tight text-gray-900 dark:text-white">Usuarios</h2>
+              <div className="flex items-center gap-2">
+                <SearchInput
+                  value={query}
+                  onChange={handleSearch}
+                  label="Buscar usuario por nombre"
+                  placeholder="Buscar usuario..."
+                  className="w-40 sm:w-56"
+                />
+                <Button
+                  onClick={() => navigate("/admin/users/create")}
+                  className="inline-flex shrink-0 items-center justify-center rounded-full bg-blue-600 px-4 py-1.5 text-xs font-semibold text-white hover:bg-blue-700 shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+                >
+                  Nuevo usuario
+                </Button>
+              </div>
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <FormSelect
+                size="sm"
+                label="Rol"
+                value={role}
+                options={ROLE_FILTER_OPTIONS}
+                onChange={handleRoleChange}
+                className="w-32"
+              />
+              <DateRangeFilter value={filters} onChange={handleFiltersChange} namePrefix="admin-filter" />
+            </div>
+          </div>
         </CardHeader>
         <CardContent>
-          <div className="space-y-3">
-            {users.map((user) => {
+          {visibleUsers.length === 0 ? (
+            <p className="text-sm text-center py-8 text-gray-500 dark:text-gray-400">No hay usuarios</p>
+          ) : (
+            <div className="space-y-3">
+              {visibleUsers.map((user) => {
               const name = fullName(user)
               const checked = user.id != null && isSelected(user.id)
               return (
@@ -110,8 +158,12 @@ export function AdminUserList({ users: initialUsers }: AdminUserListProps) {
                 </div>
               )
             })}
-          </div>
+            </div>
+          )}
         </CardContent>
+        <div className="px-4 pb-4">
+          <Pagination page={page} totalPages={totalPages} onChange={setPage} />
+        </div>
       </Card>
       <AdminUserDetailModal
         user={detailUser}
