@@ -1,12 +1,14 @@
 import { useState } from "react"
 import { useNavigate } from "react-router-dom"
-import type { TaskEssential } from "@/features/task/types/taskEssential"
-import { EMPTY_TASK_FILTERS } from "@/features/task/constants/taskOptions"
+import type { TaskEssential, TaskFilterValues } from "@/features/task/types/taskEssential"
+import { EMPTY_TASK_FILTERS, TASK_PAGE_SIZE } from "@/features/task/constants/taskOptions"
 import { TaskSelectButton } from "@/components/ui/TaskSelectButton"
 import { Button } from "@/components/ui/Button"
 import { SearchInput } from "@/components/ui/SearchInput"
+import { Pagination } from "@/components/ui/Pagination"
 import { Card, CardContent, CardHeader } from "@/components/ui/Card"
 import { useSelection } from "@/hooks/useSelection"
+import { usePagination } from "@/hooks/usePagination"
 import { TaskDetailModal } from "@/features/task/components/TaskDetailModal"
 import { TaskFilters } from "@/features/task/components/TaskFilters"
 import { STATUS_STYLES, PRIORITY_STYLES, capitalize } from "@/features/task/utils/taskStyles"
@@ -22,6 +24,17 @@ export function TaskEssentialList({ tasks: initialTasks }: TaskEssentialListProp
   const [detailTask, setDetailTask] = useState<TaskEssential | null>(null)
   const [query, setQuery] = useState("")
   const [filters, setFilters] = useState(EMPTY_TASK_FILTERS)
+  const { page, totalPages, visibleItems: visibleTasks, setPage, resetPage } = usePagination(tasks, TASK_PAGE_SIZE)
+
+  const handleSearch = (value: string) => {
+    setQuery(value)
+    resetPage()
+  }
+
+  const handleFiltersChange = (value: TaskFilterValues) => {
+    setFilters(value)
+    resetPage()
+  }
 
   const handleUpdate = (updated: TaskEssential) => {
     setTasks((prev) => prev.map((t) => (t.id != null && updated.id != null ? (t.id === updated.id ? updated : t) : t.title === updated.title ? updated : t)))
@@ -38,7 +51,7 @@ export function TaskEssentialList({ tasks: initialTasks }: TaskEssentialListProp
               <div className="flex items-center gap-2">
                 <SearchInput
                   value={query}
-                  onChange={setQuery}
+                  onChange={handleSearch}
                   label="Buscar tarea por nombre"
                   placeholder="Buscar tarea..."
                   className="w-40 sm:w-56"
@@ -51,7 +64,7 @@ export function TaskEssentialList({ tasks: initialTasks }: TaskEssentialListProp
                 </Button>
               </div>
             </div>
-            <TaskFilters value={filters} onChange={setFilters} />
+            <TaskFilters value={filters} onChange={handleFiltersChange} />
           </div>
         </CardHeader>
         {/* futuro contenido*/}
@@ -62,7 +75,7 @@ export function TaskEssentialList({ tasks: initialTasks }: TaskEssentialListProp
             </p>
           ) : (
             <div className="space-y-3">
-              {tasks.map((task) => {
+              {visibleTasks.map((task) => {
                 const checked = task.id != null && isSelected(task.id)
                 return (
                   <div
@@ -125,7 +138,10 @@ export function TaskEssentialList({ tasks: initialTasks }: TaskEssentialListProp
             </div>
           )}
         </CardContent>
-        {/* futura paginación*/}
+        {/* paginador en la parte inferior; arriba quedan filtros + busqueda */}
+        <div className="px-4 pb-4">
+          <Pagination page={page} totalPages={totalPages} onChange={setPage} />
+        </div>
       </Card>
       <TaskDetailModal task={detailTask} open={!!detailTask} onClose={() => setDetailTask(null)} onUpdate={handleUpdate} />
     </>
