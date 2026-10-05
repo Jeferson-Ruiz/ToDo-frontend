@@ -28,3 +28,6 @@ export const EMPTY_TASK_FILTERS: TaskFilterValues = {
   from: null,
   to: null,
 }
+
+//Tareas por pagina
+export const TASK_PAGE_SIZE = 5
