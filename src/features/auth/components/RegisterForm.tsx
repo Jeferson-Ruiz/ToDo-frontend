@@ -4,6 +4,9 @@ import { Input } from "@/components/ui/Input"
 import { Button } from "@/components/ui/Button"
 import { useToggle } from "@/hooks/useToggle"
 import { EyeIcon, EyeOffIcon } from "@/components/ui/icons/EyeIcon"
+import { register } from "@/features/auth/services/authService"
+import type { RegisterDto } from "@/features/auth/services/authService"
+import axios from "axios"
 
 export function RegisterForm() {
   const [name, setName] = useState("")
@@ -11,11 +14,27 @@ export function RegisterForm() {
   const [username, setUsername] = useState("")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
+  const [error, setError] = useState<string | null>(null)
+  const [ok, setOk] = useState<string | null>(null)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+
   const { visible, toggle } = useToggle(false)
 
-  const handleSubmit = (e: React.SyntheticEvent) => {
+  const handleSubmit = async (e: React.SyntheticEvent) => {
     e.preventDefault()
-    console.log({ name, lastName, username, email, password })
+    setError(null)
+    setOk(null)
+    setIsSubmitting(true)
+    try {
+      const dto: RegisterDto = { name, lastName, email, username, password }
+      const msg = await register(dto)
+      setOk(msg)
+    } catch (err) {
+      if (axios.isAxiosError(err)) setError((err.response?.data?.message as string | undefined) ?? "Error al registrarse")
+      else setError("Error al registrarse")
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (
@@ -69,7 +88,9 @@ export function RegisterForm() {
           </button>
         }
       />
-      <Button type="submit">Registrarse</Button>
+      <Button type="submit" disabled={isSubmitting}>{isSubmitting ? "Registrando..." : "Registrarse"}</Button>
+      {ok && <p>{ok}</p>}
+      {error && <p>{error}</p>}
     </form>
   )
 }
