@@ -12,3 +12,21 @@ export const register = (dto: RegisterDto) => api.post<string>("/auth/register",
 
 export const activateAccount = (token: string) =>
   api.get<string>("/auth/activation", { params: { token } }).then(r => r.data);
+
+export interface LoginDto {
+    email: string,
+    password: string
+}
+
+export interface AuthResponse {
+    token: string,
+    email: string,
+    role: string,
+    expiresIn: number
+}
+
+export const login = (dto: LoginDto) =>
+  api.post<AuthResponse>("/auth/login", dto).then(r => r.data);
+
+export const logout = () =>
+  api.post<string>("/auth/logout").then(r => r.data);
