@@ -4,6 +4,8 @@ import { Home } from "@/pages/Home"
 import { Login } from "@/pages/Login"
 import { Register } from "@/pages/Register"
 import { ForgotPassword } from "@/pages/ForgotPassword"
+import { Activation } from "@/pages/Activation"
+import { ActivationSuccess } from "@/pages/ActivationSuccess"
 import { Tasks } from "@/pages/Tasks"
 import { TaskCreate } from "@/pages/TaskCreate"
 import { Categories } from "@/pages/Categories"
@@ -16,6 +18,8 @@ export const router = createBrowserRouter([
   { path: "/login", element: <Login /> },
   { path: "/register", element: <Register /> },
   { path: "/forgot-password", element: <ForgotPassword /> },
+  { path: "/activation", element: <Activation /> },
+  { path: "/activation/success", element: <ActivationSuccess /> },
   {
     element: <AppLayout />,
     children: [
