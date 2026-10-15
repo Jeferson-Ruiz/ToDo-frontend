@@ -1,19 +1,37 @@
 import { useState } from "react"
-import { Link } from "react-router-dom"
+import { Link, useNavigate } from "react-router-dom"
 import { Title } from "@/components/ui/Title"
 import { Input } from "@/components/ui/Input"
 import { Button } from "@/components/ui/Button"
 import { useToggle } from "@/hooks/useToggle"
 import { EyeIcon, EyeOffIcon } from "@/components/ui/icons/EyeIcon"
+import { login } from "@/features/auth/services/authService"
+import axios from "axios"
 
 export function LoginForm() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
+  const [error, setError] = useState<string | null>(null)
+  const [isSubmitting, setIsSubmitting] = useState(false)
   const { visible, toggle } = useToggle(false)
+  const navigate = useNavigate()
 
-  const handleSubmit = (e: React.SyntheticEvent) => {
+  const handleSubmit = async (e: React.SyntheticEvent) => {
     e.preventDefault()
-    console.log({ email, password })
+    setError(null)
+    setIsSubmitting(true)
+    try {
+      const data = await login({ email, password })
+      localStorage.setItem("token", data.token)
+      localStorage.setItem("role", data.role)
+      localStorage.setItem("email", data.email)
+      navigate("/tasks")
+    } catch (err) {
+      if (axios.isAxiosError(err)) setError((err.response?.data?.message as string | undefined) ?? "Error al iniciar sesión")
+      else setError("Error al iniciar sesión")
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (
@@ -50,7 +68,8 @@ export function LoginForm() {
             </button>
           }
         />
-        <Button type="submit">Entrar</Button>
+        <Button type="submit" disabled={isSubmitting}>{isSubmitting ? "Entrando..." : "Entrar"}</Button>
+        {error && <p className="text-sm text-red-600 dark:text-red-400 text-center">{error}</p>}
         <Link
           to="/forgot-password"
           className="text-sm text-blue-600 dark:text-blue-400 hover:underline text-center"
