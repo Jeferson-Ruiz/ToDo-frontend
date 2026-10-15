@@ -9,3 +9,6 @@ export interface RegisterDto {
 }
 
 export const register = (dto: RegisterDto) => api.post<string>("/auth/register", dto).then(r => r.data);
+
+export const activateAccount = (token: string) =>
+  api.get<string>("/auth/activation", { params: { token } }).then(r => r.data);
