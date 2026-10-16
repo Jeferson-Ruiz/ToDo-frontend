@@ -47,13 +47,14 @@ export function CategoryCreateForm({ onCreate, onCancel, isSubmitting }: Categor
             htmlFor="create-category-description"
             className="text-sm font-medium text-gray-700 dark:text-gray-200"
           >
-            Descripción
+            Descripción *
           </label>
           <textarea
             id="create-category-description"
             name="create-category-description"
             placeholder="Descripción de la categoría"
             value={description}
+            required
             onChange={(e) => setDescription(e.target.value)}
             className="w-full min-h-[96px] border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-white placeholder-gray-400 rounded-xl px-3.5 py-2.5 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-600 dark:focus:ring-blue-500 resize-y"
           />
