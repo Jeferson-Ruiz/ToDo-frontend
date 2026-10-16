@@ -1,44 +1,56 @@
-import { useState } from "react"
+/* eslint-disable react-hooks/set-state-in-effect */
+import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import type { TaskEssential, TaskFilterValues } from "@/features/task/types/taskEssential"
-import { EMPTY_TASK_FILTERS, TASK_PAGE_SIZE } from "@/features/task/constants/taskOptions"
 import { TaskSelectButton } from "@/components/ui/TaskSelectButton"
 import { Button } from "@/components/ui/Button"
 import { SearchInput } from "@/components/ui/SearchInput"
 import { Pagination } from "@/components/ui/Pagination"
 import { Card, CardContent, CardHeader } from "@/components/ui/Card"
 import { useSelection } from "@/hooks/useSelection"
-import { usePagination } from "@/hooks/usePagination"
 import { TaskDetailModal } from "@/features/task/components/TaskDetailModal"
 import { TaskFilters } from "@/features/task/components/TaskFilters"
+import {
+  deleteTask,
+} from "@/features/task/services/taskService"
+import { updateChangedFields } from "@/features/task/services/updateTask"
 import { STATUS_STYLES, PRIORITY_STYLES, capitalize } from "@/features/task/utils/taskStyles"
 
 interface TaskEssentialListProps {
   tasks: TaskEssential[]
+  page: number
+  totalPages: number
+  onPageChange: (page: number) => void
+  loading?: boolean
+  error?: string | null
+  query: string
+  filters: TaskFilterValues
+  onSearchChange: (value: string) => void
+  onFiltersChange: (value: TaskFilterValues) => void
 }
 
-export function TaskEssentialList({ tasks: initialTasks }: TaskEssentialListProps) {
+export function TaskEssentialList({ tasks: initialTasks, page, totalPages, onPageChange, loading = false, error = null, query, filters, onSearchChange, onFiltersChange }: TaskEssentialListProps) {
   const navigate = useNavigate()
   const { toggle, isSelected } = useSelection<string | number>()
   const [tasks, setTasks] = useState<TaskEssential[]>(initialTasks)
   const [detailTask, setDetailTask] = useState<TaskEssential | null>(null)
-  const [query, setQuery] = useState("")
-  const [filters, setFilters] = useState(EMPTY_TASK_FILTERS)
-  const { page, totalPages, visibleItems: visibleTasks, setPage, resetPage } = usePagination(tasks, TASK_PAGE_SIZE)
 
-  const handleSearch = (value: string) => {
-    setQuery(value)
-    resetPage()
-  }
+  useEffect(() => {
+    setTasks(initialTasks)
+  }, [initialTasks])
 
-  const handleFiltersChange = (value: TaskFilterValues) => {
-    setFilters(value)
-    resetPage()
-  }
-
-  const handleUpdate = (updated: TaskEssential) => {
-    setTasks((prev) => prev.map((t) => (t.id != null && updated.id != null ? (t.id === updated.id ? updated : t) : t.title === updated.title ? updated : t)))
+  const handleUpdate = async (updated: TaskEssential) => {
+    if (detailTask?.id != null && updated.id != null) {
+      await updateChangedFields(detailTask, updated)
+    }
+    setTasks((prev) => prev.map((t) => (t.id === updated.id ? updated : t)))
     setDetailTask(updated)
+  }
+
+  const handleDelete = async (id: string | number) => {
+    await deleteTask(Number(id))
+    setTasks((prev) => prev.filter((t) => t.id !== id))
+    setDetailTask(null)
   }
 
   return (
@@ -51,7 +63,7 @@ export function TaskEssentialList({ tasks: initialTasks }: TaskEssentialListProp
               <div className="flex items-center gap-2">
                 <SearchInput
                   value={query}
-                  onChange={handleSearch}
+                  onChange={onSearchChange}
                   label="Buscar tarea por nombre"
                   placeholder="Buscar tarea..."
                   className="w-40 sm:w-56"
@@ -64,22 +76,30 @@ export function TaskEssentialList({ tasks: initialTasks }: TaskEssentialListProp
                 </Button>
               </div>
             </div>
-            <TaskFilters value={filters} onChange={handleFiltersChange} />
+            <TaskFilters value={filters} onChange={onFiltersChange} />
           </div>
         </CardHeader>
         {/* futuro contenido*/}
         <CardContent>
-          {tasks.length === 0 ? (
+          {loading ? (
+            <p className="text-sm text-center py-8 text-gray-500 dark:text-gray-400">
+              Cargando tareas...
+            </p>
+          ) : error ? (
+            <p className="text-sm text-center py-8 text-red-600 dark:text-red-400">
+              {error}
+            </p>
+          ) : tasks.length === 0 ? (
             <p className="text-sm text-center py-8 text-gray-500 dark:text-gray-400">
               No hay tareas
             </p>
           ) : (
             <div className="space-y-3">
-              {visibleTasks.map((task) => {
+              {tasks.map((task) => {
                 const checked = task.id != null && isSelected(task.id)
                 return (
                   <div
-                    key={task.id ?? task.title}
+                    key={task.id ?? task.name}
                     onDoubleClick={() => setDetailTask(task)}
                     title="Doble click para ver detalle"
                     className={`flex items-center gap-3 rounded-2xl border px-4 py-3 transition-all duration-200 ease-out hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.99] cursor-default select-none ${
@@ -96,7 +116,7 @@ export function TaskEssentialList({ tasks: initialTasks }: TaskEssentialListProp
                     </span>
                     <div className="min-w-0 flex-1">
                       <div className="text-[15px] font-bold tracking-tight leading-none truncate text-gray-900 dark:text-white">
-                        {task.title}
+                        {task.name}
                       </div>
                       {(task.category ?? task.deadline) && (
                         <div className="text-xs mt-1.5 truncate flex items-center gap-1.5">
@@ -140,10 +160,10 @@ export function TaskEssentialList({ tasks: initialTasks }: TaskEssentialListProp
         </CardContent>
         {/* paginador en la parte inferior; arriba quedan filtros + busqueda */}
         <div className="px-4 pb-4">
-          <Pagination page={page} totalPages={totalPages} onChange={setPage} />
+          <Pagination page={page} totalPages={totalPages} onChange={onPageChange} />
         </div>
       </Card>
-      <TaskDetailModal task={detailTask} open={!!detailTask} onClose={() => setDetailTask(null)} onUpdate={handleUpdate} />
+      <TaskDetailModal task={detailTask} open={!!detailTask} onClose={() => setDetailTask(null)} onUpdate={handleUpdate} onDelete={handleDelete} />
     </>
   )
 }

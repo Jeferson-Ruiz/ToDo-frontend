@@ -3,6 +3,7 @@ import { Modal } from "@/components/ui/Modal"
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog"
 import { DeleteButton } from "@/components/ui/DeleteButton"
 import { UpdateButton } from "@/components/ui/UpdateButton"
+import { useAsyncAction } from "@/hooks/useAsyncAction"
 import type { TaskEssential } from "@/features/task/types/taskEssential"
 import { STATUS_STYLES, PRIORITY_STYLES, capitalize } from "@/features/task/utils/taskStyles"
 import { TaskEditForm } from "@/features/task/components/TaskEditForm"
@@ -11,41 +12,62 @@ interface TaskDetailModalProps {
   task: TaskEssential | null
   open: boolean
   onClose: () => void
-  onUpdate?: (task: TaskEssential) => void
+  onUpdate?: (task: TaskEssential) => Promise<void> | void
+  onDelete?: (id: string | number) => Promise<void> | void
 }
 
-export function TaskDetailModal({ task, open, onClose, onUpdate }: TaskDetailModalProps) {
+export function TaskDetailModal({ task, open, onClose, onUpdate, onDelete }: TaskDetailModalProps) {
   const [confirmOpen, setConfirmOpen] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
-  const startEditing = () => setIsEditing(true)
+  const saveAction = useAsyncAction("Error al actualizar la tarea")
+  const deleteAction = useAsyncAction("Error al eliminar la tarea")
+  const startEditing = () => {
+    saveAction.clearError()
+    setIsEditing(true)
+  }
   const stopEditing = () => setIsEditing(false)
 
   if (!task) return null
 
   const handleClose = () => {
     stopEditing()
+    saveAction.clearError()
+    deleteAction.clearError()
     onClose()
   }
 
-  const handleSave = (updated: TaskEssential) => {
-    onUpdate?.(updated)
-    stopEditing()
+  const handleSave = async (updated: TaskEssential) => {
+    const ok = await saveAction.run(() => onUpdate?.(updated))
+    if (ok) stopEditing()
   }
 
-  const handleConfirmDelete = () => {
-    setConfirmOpen(false)
-    handleClose()
+  const handleConfirmDelete = async () => {
+    const id = task.id
+    if (id == null) {
+      deleteAction.setError("No se puede eliminar: la tarea no tiene id")
+      return
+    }
+    const ok = await deleteAction.run(() => onDelete?.(id))
+    if (ok) {
+      setConfirmOpen(false)
+      handleClose()
+    }
   }
 
   return (
-    <Modal open={open} onClose={handleClose} ariaLabel={task.title}>
+    <Modal open={open} onClose={handleClose} ariaLabel={task.name}>
       {isEditing ? (
-        <TaskEditForm key={task.id ?? task.title} task={task} onCancel={stopEditing} onSave={handleSave} />
+        <>
+          {saveAction.error && (
+            <p className="mb-3 text-sm text-red-600 dark:text-red-400 text-center">{saveAction.error}</p>
+          )}
+          <TaskEditForm key={task.id ?? task.name} task={task} onCancel={stopEditing} onSave={handleSave} />
+        </>
       ) : (
         <div className="space-y-5">
           <div className="pr-8">
             <h3 className="text-[22px] font-extrabold tracking-tight leading-tight text-gray-900 dark:text-white">
-              {task.title}
+              {task.name}
             </h3>
             <div className="mt-1 h-1 w-10 rounded-full bg-gradient-to-r from-blue-600 to-violet-500" aria-hidden />
             <div className="mt-3 flex flex-wrap gap-2">
@@ -122,9 +144,12 @@ export function TaskDetailModal({ task, open, onClose, onUpdate }: TaskDetailMod
             </div>
           </div>
           <div className="flex justify-end gap-3 pt-4 border-t border-gray-100 dark:border-gray-800">
-            <UpdateButton onClick={startEditing} ariaLabel={`Actualizar ${task.title}`} />
-            <DeleteButton onClick={() => setConfirmOpen(true)} ariaLabel={`Eliminar ${task.title}`} />
+            <UpdateButton onClick={startEditing} ariaLabel={`Actualizar ${task.name}`} />
+            <DeleteButton onClick={() => setConfirmOpen(true)} ariaLabel={`Eliminar ${task.name}`} />
           </div>
+          {deleteAction.error && (
+            <p className="text-sm text-red-600 dark:text-red-400 text-center">{deleteAction.error}</p>
+          )}
         </div>
       )}
 
@@ -133,7 +158,8 @@ export function TaskDetailModal({ task, open, onClose, onUpdate }: TaskDetailMod
         onClose={() => setConfirmOpen(false)}
         onConfirm={handleConfirmDelete}
         title="¿Eliminar tarea?"
-        description={`${task.title}`}
+        description={`${task.name}`}
+        confirmLabel={deleteAction.loading ? "Eliminando..." : "Eliminar"}
       />
     </Modal>
   )
