@@ -1,4 +1,5 @@
-import { useState } from "react"
+/* eslint-disable react-hooks/set-state-in-effect */
+import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import type { Category, CategoryFilterValues } from "@/features/category/types/category"
 import { TaskSelectButton } from "@/components/ui/TaskSelectButton"
@@ -7,40 +8,45 @@ import { SearchInput } from "@/components/ui/SearchInput"
 import { Pagination } from "@/components/ui/Pagination"
 import { Card, CardContent, CardHeader } from "@/components/ui/Card"
 import { useSelection } from "@/hooks/useSelection"
-import { usePagination } from "@/hooks/usePagination"
 import { CategoryDetailModal } from "@/features/category/components/CategoryDetailModal"
 import { DateRangeFilter } from "@/components/ui/DateRangeFilter"
+import { deleteCategory } from "@/features/category/services/categoryService"
+import { updateCategory } from "@/features/category/services/updateCategory"
 
 interface CategoryListProps {
   categories: Category[]
+  page: number
+  totalPages: number
+  onPageChange: (page: number) => void
+  loading?: boolean
+  error?: string | null
+  query: string
+  filters: CategoryFilterValues
+  onSearchChange: (value: string) => void
+  onFiltersChange: (value: CategoryFilterValues) => void
 }
 
-export function CategoryList({ categories: initialCategories }: CategoryListProps) {
+export function CategoryList({ categories: initialCategories, page, totalPages, onPageChange, loading = false, error = null, query, filters, onSearchChange, onFiltersChange }: CategoryListProps) {
   const navigate = useNavigate()
   const { toggle, isSelected } = useSelection<string | number>()
   const [categories, setCategories] = useState<Category[]>(initialCategories)
   const [detailCategory, setDetailCategory] = useState<Category | null>(null)
-  const [query, setQuery] = useState("")
-  const [filters, setFilters] = useState<CategoryFilterValues>({ from: null, to: null })
 
-  const { page, totalPages, visibleItems: visibleCategories, setPage, resetPage } = usePagination(categories, 5)
+  useEffect(() => {
+    setCategories(initialCategories)
+  }, [initialCategories])
 
-  const handleSearch = (value: string) => {
-    setQuery(value)
-    resetPage()
-  }
-
-  const handleFiltersChange = (value: CategoryFilterValues) => {
-    setFilters(value)
-    resetPage()
-  }
-
-  const handleUpdate = (updated: Category) => {
+  const handleUpdate = async (updated: Category) => {
+    if (detailCategory?.id != null && updated.id != null) {
+      await updateCategory(detailCategory, updated)
+    }
     setCategories((prev) => prev.map((c) => (c.id === updated.id ? updated : c)))
     setDetailCategory(updated)
   }
 
-  const handleDelete = (toDelete: Category) => {
+  const handleDelete = async (toDelete: Category) => {
+    if (toDelete.id == null) return
+    await deleteCategory(Number(toDelete.id))
     setCategories((prev) => prev.filter((c) => c.id !== toDelete.id))
   }
 
@@ -54,7 +60,7 @@ export function CategoryList({ categories: initialCategories }: CategoryListProp
               <div className="flex items-center gap-2">
                 <SearchInput
                   value={query}
-                  onChange={handleSearch}
+                  onChange={onSearchChange}
                   label="Buscar categoría por nombre"
                   placeholder="Buscar categoría..."
                   className="w-40 sm:w-56"
@@ -67,15 +73,23 @@ export function CategoryList({ categories: initialCategories }: CategoryListProp
                 </Button>
               </div>
             </div>
-            <DateRangeFilter value={filters} onChange={handleFiltersChange} namePrefix="category-filter" />
+            <DateRangeFilter value={filters} onChange={onFiltersChange} namePrefix="category-filter" />
           </div>
         </CardHeader>
         <CardContent>
-          {visibleCategories.length === 0 ? (
+          {loading ? (
+            <p className="text-sm text-center py-8 text-gray-500 dark:text-gray-400">
+              Cargando categorías...
+            </p>
+          ) : error ? (
+            <p className="text-sm text-center py-8 text-red-600 dark:text-red-400">
+              {error}
+            </p>
+          ) : categories.length === 0 ? (
             <p className="text-sm text-center py-8 text-gray-500 dark:text-gray-400">No hay categorías</p>
           ) : (
             <div className="space-y-3">
-              {visibleCategories.map((category) => {
+              {categories.map((category) => {
               const checked = category.id != null && isSelected(category.id)
               return (
                 <div
@@ -115,7 +129,7 @@ export function CategoryList({ categories: initialCategories }: CategoryListProp
           )}
         </CardContent>
         <div className="px-4 pb-4">
-          <Pagination page={page} totalPages={totalPages} onChange={setPage} />
+          <Pagination page={page} totalPages={totalPages} onChange={onPageChange} />
         </div>
       </Card>
       <CategoryDetailModal
