@@ -44,11 +44,11 @@ export function TaskEditForm({ task, onCancel, onSave }: TaskEditFormProps) {
       <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-800/30 p-4 space-y-4">
         <Input
           label="Título"
-          name="edit-title"
+          name="edit-name"
           type="text"
           placeholder="Título de la tarea"
-          value={draft.title}
-          onChange={(v) => setDraft((p) => ({ ...p, title: v }))}
+          value={draft.name}
+          onChange={(v) => setDraft((p) => ({ ...p, name: v }))}
         />
 
         <div className="flex flex-col gap-1.5">
