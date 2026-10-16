@@ -1,4 +1,5 @@
-import { useState } from "react"
+/* eslint-disable react-hooks/set-state-in-effect */
+import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/Button"
 import { DateTimePicker } from "@/components/ui/DateTimePicker"
 
@@ -17,6 +18,10 @@ interface DateRangeFilterProps {
 // No filtra nada local ni hace fetch; el backend aplicará from/to.
 export function DateRangeFilter({ value, onChange, namePrefix = "filter" }: DateRangeFilterProps) {
   const [range, setRange] = useState<DateRangeValues>({ from: value.from, to: value.to })
+
+  useEffect(() => {
+    setRange({ from: value.from, to: value.to })
+  }, [value.from, value.to])
 
   const rangeReady = !!(range.from && range.to && range.from <= range.to)
   const handleApply = () => onChange({ from: range.from, to: range.to })

@@ -1,4 +1,4 @@
-import { STATUS_OPTIONS, PRIORITY_OPTIONS, CATEGORY_OPTIONS } from "@/features/task/constants/taskOptions"
+import { STATUS_OPTIONS, PRIORITY_OPTIONS, CATEGORY_OPTIONS, EMPTY_TASK_FILTERS } from "@/features/task/constants/taskOptions"
 import type { TaskFilterValues } from "@/features/task/types/taskEssential"
 import { FormSelect } from "@/components/ui/FormSelect"
 import { DateRangeFilter } from "@/components/ui/DateRangeFilter"
@@ -9,7 +9,7 @@ interface TaskFiltersProps {
 }
 
 export function TaskFilters({ value, onChange }: TaskFiltersProps) {
-  const patch = (changes: Partial<TaskFilterValues>) => onChange({ ...value, ...changes })
+  const patch = (changes: Partial<TaskFilterValues>) => onChange({ ...EMPTY_TASK_FILTERS, ...changes })
 
   return (
     <div className="flex flex-wrap items-center gap-2">
