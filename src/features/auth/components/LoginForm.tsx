@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/Button"
 import { useToggle } from "@/hooks/useToggle"
 import { EyeIcon, EyeOffIcon } from "@/components/ui/icons/EyeIcon"
 import { login } from "@/features/auth/services/authService"
+import { saveAuth } from "@/lib/authSession"
 import axios from "axios"
 
 export function LoginForm() {
@@ -22,9 +23,7 @@ export function LoginForm() {
     setIsSubmitting(true)
     try {
       const data = await login({ email, password })
-      localStorage.setItem("token", data.token)
-      localStorage.setItem("role", data.role)
-      localStorage.setItem("email", data.email)
+      saveAuth(data)
       navigate("/tasks")
     } catch (err) {
       if (axios.isAxiosError(err)) setError((err.response?.data?.message as string | undefined) ?? "Error al iniciar sesión")
