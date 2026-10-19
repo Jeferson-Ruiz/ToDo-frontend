@@ -30,3 +30,11 @@ export const login = (dto: LoginDto) =>
 
 export const logout = () =>
   api.post<string>("/auth/logout").then(r => r.data);
+
+export const requestRecovery = (email: string) =>
+  api.post<{ message: string }>("/recovery/request", { email }).then(r => r.data);
+
+export const resetPassword = (token: string, newPassword: string, repeatPassword: string) =>
+  api
+    .post<{ message: string }>("/recovery/api/reset-password", { newPassword, repeatPassword }, { params: { token } })
+    .then(r => r.data);
