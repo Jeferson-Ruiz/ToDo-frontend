@@ -1,7 +1,9 @@
 import { useNavigate } from "react-router-dom"
 import { useToggle } from "@/hooks/useToggle"
+import { useLogout } from "@/hooks/useLogout"
 import { UserInfoModal } from "@/features/user/components/UserInfoModal"
 import { UpdatePasswordModal } from "@/features/user/components/UpdatePasswordModal"
+import { getAuth } from "@/lib/authSession"
 import type { User } from "@/types/user"
 
 const EXAMPLE_USER: User = {
@@ -15,11 +17,8 @@ const EXAMPLE_USER: User = {
   dateCreation: "01/09/2026 09:00",
 }
 
-const EXAMPLE_TOKEN = "eyJhbGciOiJIUzI1NiJ9.exAMPLE"
-
 interface UserMenuProps {
   user?: User
-  token?: string
   onPersonalInfo?: () => void
   onUpdatePassword?: () => void
   onLogout?: () => void
@@ -27,12 +26,13 @@ interface UserMenuProps {
 
 export function UserMenu({
   user = EXAMPLE_USER,
-  token = EXAMPLE_TOKEN,
   onPersonalInfo,
   onUpdatePassword,
   onLogout,
 }: UserMenuProps) {
   const navigate = useNavigate()
+  const logout = useLogout()
+  const isAdmin = getAuth().role === "ADMIN"
   const { visible: open, toggle, setVisible } = useToggle(false)
   const { visible: infoOpen, toggle: toggleInfo } = useToggle(false)
   const { visible: passwordOpen, toggle: togglePassword } = useToggle(false)
@@ -54,11 +54,10 @@ export function UserMenu({
     navigate("/admin")
   }
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     setVisible(false)
-    console.log({ userId: user.id, token })
     onLogout?.()
-    navigate("/")
+    await logout()
   }
 
   return (
@@ -134,21 +133,25 @@ export function UserMenu({
             Actualizar contraseña
           </button>
 
-          <div className="my-1 h-px bg-gray-100 dark:bg-gray-800" role="separator" />
+          {isAdmin && (
+            <>
+              <div className="my-1 h-px bg-gray-100 dark:bg-gray-800" role="separator" />
 
-          <button
-            type="button"
-            role="menuitem"
-            onClick={handleAdmin}
-            className="w-full text-left px-4 py-2.5 text-sm flex items-center gap-3 transition-colors text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800"
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10" />
-            </svg>
-            Administración
-          </button>
+              <button
+                type="button"
+                role="menuitem"
+                onClick={handleAdmin}
+                className="w-full text-left px-4 py-2.5 text-sm flex items-center gap-3 transition-colors text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10" />
+                </svg>
+                Administración
+              </button>
 
-          <div className="my-1 h-px bg-gray-100 dark:bg-gray-800" role="separator" />
+              <div className="my-1 h-px bg-gray-100 dark:bg-gray-800" role="separator" />
+            </>
+          )}
 
           <button
             type="button"
