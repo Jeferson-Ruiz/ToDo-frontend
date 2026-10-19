@@ -1,5 +1,6 @@
 import { createBrowserRouter } from "react-router-dom"
 import { AppLayout } from "@/app/AppLayout"
+import { ProtectedRoute } from "@/app/ProtectedRoute"
 import { Home } from "@/pages/Home"
 import { Login } from "@/pages/Login"
 import { Register } from "@/pages/Register"
@@ -21,14 +22,24 @@ export const router = createBrowserRouter([
   { path: "/activation", element: <Activation /> },
   { path: "/activation/success", element: <ActivationSuccess /> },
   {
-    element: <AppLayout />,
+    element: <ProtectedRoute />,
     children: [
-      { path: "/tasks", element: <Tasks /> },
-      { path: "/tasks/create", element: <TaskCreate /> },
-      { path: "/categories", element: <Categories /> },
-      { path: "/categories/create", element: <CategoryCreate /> },
-      { path: "/admin", element: <Admin /> },
-      { path: "/admin/users/create", element: <AdminUserCreate /> },
+      {
+        element: <AppLayout />,
+        children: [
+          { path: "/tasks", element: <Tasks /> },
+          { path: "/tasks/create", element: <TaskCreate /> },
+          { path: "/categories", element: <Categories /> },
+          { path: "/categories/create", element: <CategoryCreate /> },
+          {
+            element: <ProtectedRoute role="ADMIN" />,
+            children: [
+              { path: "/admin", element: <Admin /> },
+              { path: "/admin/users/create", element: <AdminUserCreate /> },
+            ],
+          },
+        ],
+      },
     ],
   },
 ])
