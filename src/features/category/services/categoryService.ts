@@ -48,3 +48,6 @@ export const updateCategoryDescription = (id: number, data: string) =>
 
 export const deleteCategory = (id: number) =>
   api.delete<void>(`/category/delete/${id}`).then((r) => r.data)
+
+export const getCategoryNames = () =>
+  get<string[]>("/category/names")
