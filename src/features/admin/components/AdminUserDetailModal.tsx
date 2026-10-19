@@ -2,6 +2,7 @@ import { useState } from "react"
 import { Modal } from "@/components/ui/Modal"
 import { InfoRow } from "@/components/ui/InfoRow"
 import { UpdateButton } from "@/components/ui/UpdateButton"
+import { useAsyncAction } from "@/hooks/useAsyncAction"
 import type { User } from "@/types/user"
 import { AdminUserEditForm } from "@/features/admin/components/AdminUserEditForm"
 import {
@@ -23,12 +24,16 @@ interface AdminUserDetailModalProps {
   user: User | null
   open: boolean
   onClose: () => void
-  onUpdate?: (user: User) => void
+  onUpdate?: (user: User) => Promise<void> | void
 }
 
 export function AdminUserDetailModal({ user, open, onClose, onUpdate }: AdminUserDetailModalProps) {
   const [isEditing, setIsEditing] = useState(false)
-  const startEditing = () => setIsEditing(true)
+  const saveAction = useAsyncAction("Error al actualizar el usuario")
+  const startEditing = () => {
+    saveAction.clearError()
+    setIsEditing(true)
+  }
   const stopEditing = () => setIsEditing(false)
 
   if (!user) return null
@@ -37,23 +42,29 @@ export function AdminUserDetailModal({ user, open, onClose, onUpdate }: AdminUse
 
   const handleClose = () => {
     stopEditing()
+    saveAction.clearError()
     onClose()
   }
 
-  const handleSave = (updated: User) => {
-    onUpdate?.(updated)
-    stopEditing()
+  const handleSave = async (updated: User) => {
+    const ok = await saveAction.run(() => onUpdate?.(updated))
+    if (ok) stopEditing()
   }
 
   return (
     <Modal open={open} onClose={handleClose} ariaLabel={name}>
       {isEditing ? (
-        <AdminUserEditForm
-          key={user.id ?? user.username}
-          user={user}
-          onCancel={stopEditing}
-          onSave={handleSave}
-        />
+        <>
+          {saveAction.error && (
+            <p className="mb-3 text-sm text-red-600 dark:text-red-400 text-center">{saveAction.error}</p>
+          )}
+          <AdminUserEditForm
+            key={user.id}
+            user={user}
+            onCancel={stopEditing}
+            onSave={handleSave}
+          />
+        </>
       ) : (
         <div className="space-y-5">
           <div className="pr-8">

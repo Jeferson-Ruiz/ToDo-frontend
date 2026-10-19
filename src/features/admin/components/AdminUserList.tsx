@@ -1,4 +1,5 @@
-import { useState } from "react"
+/* eslint-disable react-hooks/set-state-in-effect */
+import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import type { User } from "@/types/user"
 import { ROLE_OPTIONS } from "@/types/user"
@@ -9,10 +10,10 @@ import { SearchInput } from "@/components/ui/SearchInput"
 import { FormSelect } from "@/components/ui/FormSelect"
 import { Pagination } from "@/components/ui/Pagination"
 import { DateRangeFilter } from "@/components/ui/DateRangeFilter"
-import type { DateRangeValues } from "@/components/ui/DateRangeFilter"
 import { useSelection } from "@/hooks/useSelection"
-import { usePagination } from "@/hooks/usePagination"
 import { AdminUserDetailModal } from "@/features/admin/components/AdminUserDetailModal"
+import { updateChangedFields } from "@/features/admin/services/updateUser"
+import type { AdminUserFilterValues } from "@/features/admin/services/fetchUsers"
 import {
   ROLE_STYLES,
   ENABLED_STYLES,
@@ -23,48 +24,56 @@ import {
 
 interface AdminUserListProps {
   users: User[]
+  page: number
+  totalPages: number
+  onPageChange: (page: number) => void
+  loading?: boolean
+  error?: string | null
+  filters: AdminUserFilterValues
+  onFiltersChange: (value: AdminUserFilterValues) => void
 }
 
 const ROLE_FILTER_OPTIONS = [{ value: "", label: "Todos" }, ...ROLE_OPTIONS]
 
-export function AdminUserList({ users: initialUsers }: AdminUserListProps) {
+export function AdminUserList({ users: initialUsers, page, totalPages, onPageChange, loading = false, error = null, filters, onFiltersChange }: AdminUserListProps) {
   const navigate = useNavigate()
   const { toggle, isSelected } = useSelection<string | number>()
   const [users, setUsers] = useState<User[]>(initialUsers)
   const [detailUser, setDetailUser] = useState<User | null>(null)
   const [query, setQuery] = useState("")
-  const [role, setRole] = useState("")
-  // Placeholder para el futuro backend: se guarda from/to pero no filtra en local.
-  const [filters, setFilters] = useState<DateRangeValues>({ from: null, to: null })
 
-  // Filtros independientes: solo uno aplica a la vez (búsqueda o rol).
+  useEffect(() => {
+    setUsers(initialUsers)
+  }, [initialUsers])
+
+  // La busqueda sigue siendo local sobre la pagina cargada: /admin/name exige
+  // coincidencia exacta de nombre y devuelve un solo usuario.
   const normalizedQuery = query.trim().toLowerCase()
-  const filteredUsers = normalizedQuery
+  const visibleUsers = normalizedQuery
     ? users.filter((u) => fullName(u).toLowerCase().includes(normalizedQuery))
-    : role
-      ? users.filter((u) => u.role === role)
-      : users
+    : users
 
-  const { page, totalPages, visibleItems: visibleUsers, setPage, resetPage } = usePagination(filteredUsers, 5)
-
+  // Los filtros van al servidor y la pagina se resetea en el page (onFiltersChange).
   const handleSearch = (value: string) => {
     setQuery(value)
-    setRole("")
-    resetPage()
+    onFiltersChange({ ...filters, role: "", from: null, to: null })
+  }
+
+  const handleFiltersChange = (value: AdminUserFilterValues) => {
+    setQuery("")
+    onFiltersChange(value)
   }
 
   const handleRoleChange = (value: string) => {
-    setRole(value)
-    setQuery("")
-    resetPage()
+    handleFiltersChange({ ...filters, role: value as AdminUserFilterValues["role"], from: null, to: null })
   }
 
-  const handleFiltersChange = (value: DateRangeValues) => {
-    setFilters(value)
-    resetPage()
+  const handleDateRangeChange = (value: { from: string | null; to: string | null }) => {
+    handleFiltersChange({ ...filters, role: "", from: value.from, to: value.to })
   }
 
-  const handleUpdate = (updated: User) => {
+  const handleUpdate = async (updated: User) => {
+    if (detailUser) await updateChangedFields(detailUser, updated)
     setUsers((prev) => prev.map((u) => (u.id === updated.id ? updated : u)))
     setDetailUser(updated)
   }
@@ -96,26 +105,38 @@ export function AdminUserList({ users: initialUsers }: AdminUserListProps) {
               <FormSelect
                 size="sm"
                 label="Rol"
-                value={role}
+                value={filters.role}
                 options={ROLE_FILTER_OPTIONS}
                 onChange={handleRoleChange}
                 className="w-32"
               />
-              <DateRangeFilter value={filters} onChange={handleFiltersChange} namePrefix="admin-filter" />
+              <DateRangeFilter
+                value={{ from: filters.from, to: filters.to }}
+                onChange={handleDateRangeChange}
+                namePrefix="admin-filter"
+              />
             </div>
           </div>
         </CardHeader>
         <CardContent>
-          {visibleUsers.length === 0 ? (
+          {loading ? (
+            <p className="text-sm text-center py-8 text-gray-500 dark:text-gray-400">
+              Cargando usuarios...
+            </p>
+          ) : error ? (
+            <p className="text-sm text-center py-8 text-red-600 dark:text-red-400">
+              {error}
+            </p>
+          ) : visibleUsers.length === 0 ? (
             <p className="text-sm text-center py-8 text-gray-500 dark:text-gray-400">No hay usuarios</p>
           ) : (
             <div className="space-y-3">
               {visibleUsers.map((user) => {
               const name = fullName(user)
-              const checked = user.id != null && isSelected(user.id)
+              const checked = isSelected(user.id)
               return (
                 <div
-                  key={user.id ?? user.username}
+                  key={user.id}
                   onDoubleClick={() => setDetailUser(user)}
                   title="Doble click para ver detalle"
                   className={`flex items-center gap-3 rounded-2xl border px-4 py-3 transition-all duration-200 ease-out hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.99] cursor-default select-none ${
@@ -127,7 +148,7 @@ export function AdminUserList({ users: initialUsers }: AdminUserListProps) {
                   <span onClick={(e) => e.stopPropagation()} onDoubleClick={(e) => e.stopPropagation()}>
                     <TaskSelectButton
                       selected={checked}
-                      onToggle={() => user.id != null && toggle(user.id)}
+                      onToggle={() => toggle(user.id)}
                       label={`Seleccionar usuario ${name}`}
                     />
                   </span>
@@ -162,7 +183,7 @@ export function AdminUserList({ users: initialUsers }: AdminUserListProps) {
           )}
         </CardContent>
         <div className="px-4 pb-4">
-          <Pagination page={page} totalPages={totalPages} onChange={setPage} />
+          <Pagination page={page} totalPages={totalPages} onChange={onPageChange} />
         </div>
       </Card>
       <AdminUserDetailModal
