@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import type { TaskEssential, TaskFilterValues } from "@/features/task/types/taskEssential"
+import type { FormSelectOption } from "@/components/ui/FormSelect"
 import { TaskSelectButton } from "@/components/ui/TaskSelectButton"
 import { Button } from "@/components/ui/Button"
 import { SearchInput } from "@/components/ui/SearchInput"
@@ -27,9 +28,10 @@ interface TaskEssentialListProps {
   filters: TaskFilterValues
   onSearchChange: (value: string) => void
   onFiltersChange: (value: TaskFilterValues) => void
+  categoryOptions?: readonly FormSelectOption[]
 }
 
-export function TaskEssentialList({ tasks: initialTasks, page, totalPages, onPageChange, loading = false, error = null, query, filters, onSearchChange, onFiltersChange }: TaskEssentialListProps) {
+export function TaskEssentialList({ tasks: initialTasks, page, totalPages, onPageChange, loading = false, error = null, query, filters, onSearchChange, onFiltersChange, categoryOptions }: TaskEssentialListProps) {
   const navigate = useNavigate()
   const { toggle, isSelected } = useSelection<string | number>()
   const [tasks, setTasks] = useState<TaskEssential[]>(initialTasks)
@@ -76,7 +78,7 @@ export function TaskEssentialList({ tasks: initialTasks, page, totalPages, onPag
                 </Button>
               </div>
             </div>
-            <TaskFilters value={filters} onChange={onFiltersChange} />
+            <TaskFilters value={filters} onChange={onFiltersChange} categoryOptions={categoryOptions} />
           </div>
         </CardHeader>
         {/* futuro contenido*/}
@@ -163,7 +165,7 @@ export function TaskEssentialList({ tasks: initialTasks, page, totalPages, onPag
           <Pagination page={page} totalPages={totalPages} onChange={onPageChange} />
         </div>
       </Card>
-      <TaskDetailModal task={detailTask} open={!!detailTask} onClose={() => setDetailTask(null)} onUpdate={handleUpdate} onDelete={handleDelete} />
+      <TaskDetailModal task={detailTask} open={!!detailTask} onClose={() => setDetailTask(null)} onUpdate={handleUpdate} onDelete={handleDelete} categoryOptions={categoryOptions} />
     </>
   )
 }

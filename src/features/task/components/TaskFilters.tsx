@@ -1,14 +1,19 @@
-import { STATUS_OPTIONS, PRIORITY_OPTIONS, CATEGORY_OPTIONS, EMPTY_TASK_FILTERS } from "@/features/task/constants/taskOptions"
+import { STATUS_OPTIONS, PRIORITY_OPTIONS, EMPTY_TASK_FILTERS } from "@/features/task/constants/taskOptions"
 import type { TaskFilterValues } from "@/features/task/types/taskEssential"
+import type { FormSelectOption } from "@/components/ui/FormSelect"
 import { FormSelect } from "@/components/ui/FormSelect"
 import { DateRangeFilter } from "@/components/ui/DateRangeFilter"
 
 interface TaskFiltersProps {
   value: TaskFilterValues
   onChange: (value: TaskFilterValues) => void
+  categoryOptions?: readonly FormSelectOption[]
 }
 
-export function TaskFilters({ value, onChange }: TaskFiltersProps) {
+const DEFAULT_CATEGORY_OPTIONS: readonly FormSelectOption[] = [{ value: "", label: "Todas" }]
+
+export function TaskFilters({ value, onChange, categoryOptions }: TaskFiltersProps) {
+  const categories = categoryOptions && categoryOptions.length ? categoryOptions : DEFAULT_CATEGORY_OPTIONS
   const patch = (changes: Partial<TaskFilterValues>) => onChange({ ...EMPTY_TASK_FILTERS, ...changes })
 
   return (
@@ -33,7 +38,7 @@ export function TaskFilters({ value, onChange }: TaskFiltersProps) {
         size="sm"
         label="Categoría"
         value={value.category}
-        options={CATEGORY_OPTIONS}
+        options={categories}
         onChange={(category) => patch({ category })}
         className="w-28"
       />

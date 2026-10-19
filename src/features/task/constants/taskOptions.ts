@@ -15,12 +15,6 @@ export const PRIORITY_OPTIONS = [
 ] as const
 
 
-export const CATEGORY_OPTIONS = [
-  { value: "", label: "Todas" },
-  { value: "Prueba", label: "prueba" },
-
-] as const
-
 export const EMPTY_TASK_FILTERS: TaskFilterValues = {
   status: "",
   priority: "",

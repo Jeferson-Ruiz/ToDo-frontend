@@ -2,8 +2,10 @@
 import { useEffect, useState } from "react"
 import { TaskEssentialList } from "@/features/task/components/TaskEssentialList"
 import { fetchTasks } from "@/features/task/services/fetchTasks"
+import { getCategoryNames } from "@/features/category/services/categoryService"
 import { getApiErrorMessage } from "@/lib/apiError"
 import type { TaskEssential, TaskFilterValues } from "@/features/task/types/taskEssential"
+import type { FormSelectOption } from "@/components/ui/FormSelect"
 import { EMPTY_TASK_FILTERS } from "@/features/task/constants/taskOptions"
 import { useDebouncedValue } from "@/hooks/useDebouncedValue"
 
@@ -15,8 +17,27 @@ export function Tasks() {
   const [error, setError] = useState<string | null>(null)
   const [query, setQuery] = useState("")
   const [filters, setFilters] = useState<TaskFilterValues>(EMPTY_TASK_FILTERS)
+  const [categoryOptions, setCategoryOptions] = useState<readonly FormSelectOption[]>([{ value: "", label: "Todas" }])
   const debouncedQuery = useDebouncedValue(query, 400)
   const search = debouncedQuery.trim()
+
+  useEffect(() => {
+    let cancelled = false
+    getCategoryNames()
+      .then((names) => {
+        if (cancelled) return
+        setCategoryOptions([
+          { value: "", label: "Todas" },
+          ...names.map((name) => ({ value: name, label: name })),
+        ])
+      })
+      .catch(() => {
+        if (cancelled) return
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   useEffect(() => {
     let cancelled = false
@@ -65,6 +86,7 @@ export function Tasks() {
       filters={filters}
       onSearchChange={handleSearchChange}
       onFiltersChange={handleFiltersChange}
+      categoryOptions={categoryOptions}
     />
   )
 }

@@ -9,15 +9,17 @@ import { FormSelect } from "@/components/ui/FormSelect"
 import { DateTimePicker } from "@/components/ui/DateTimePicker"
 import type { FormSelectOption } from "@/components/ui/FormSelect"
 
-const CATEGORY_OPTIONS: readonly FormSelectOption[] = [{ value: "", label: "Sin categoría" }] as const
-
 interface TaskEditFormProps {
   task: TaskEssential
   onCancel: () => void
   onSave: (updated: TaskEssential) => void
+  categoryOptions?: readonly FormSelectOption[]
 }
 
-export function TaskEditForm({ task, onCancel, onSave }: TaskEditFormProps) {
+const DEFAULT_CATEGORY_OPTIONS: readonly FormSelectOption[] = [{ value: "", label: "Sin categoría" }]
+
+export function TaskEditForm({ task, onCancel, onSave, categoryOptions }: TaskEditFormProps) {
+  const categories = categoryOptions && categoryOptions.length ? categoryOptions : DEFAULT_CATEGORY_OPTIONS
   const [draft, setDraft] = useState<TaskEssential>(task)
 
   useEffect(() => {
@@ -78,7 +80,7 @@ export function TaskEditForm({ task, onCancel, onSave }: TaskEditFormProps) {
           label="Categoría"
           id="edit-category"
           value={draft.category ?? ""}
-          options={CATEGORY_OPTIONS}
+          options={categories}
           onChange={(v) => setDraft((p) => ({ ...p, category: v ? v : null }))}
         />
 

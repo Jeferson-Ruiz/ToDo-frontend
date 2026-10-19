@@ -5,6 +5,7 @@ import { DeleteButton } from "@/components/ui/DeleteButton"
 import { UpdateButton } from "@/components/ui/UpdateButton"
 import { useAsyncAction } from "@/hooks/useAsyncAction"
 import type { TaskEssential } from "@/features/task/types/taskEssential"
+import type { FormSelectOption } from "@/components/ui/FormSelect"
 import { STATUS_STYLES, PRIORITY_STYLES, capitalize } from "@/features/task/utils/taskStyles"
 import { TaskEditForm } from "@/features/task/components/TaskEditForm"
 
@@ -14,9 +15,10 @@ interface TaskDetailModalProps {
   onClose: () => void
   onUpdate?: (task: TaskEssential) => Promise<void> | void
   onDelete?: (id: string | number) => Promise<void> | void
+  categoryOptions?: readonly FormSelectOption[]
 }
 
-export function TaskDetailModal({ task, open, onClose, onUpdate, onDelete }: TaskDetailModalProps) {
+export function TaskDetailModal({ task, open, onClose, onUpdate, onDelete, categoryOptions }: TaskDetailModalProps) {
   const [confirmOpen, setConfirmOpen] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
   const saveAction = useAsyncAction("Error al actualizar la tarea")
@@ -61,7 +63,7 @@ export function TaskDetailModal({ task, open, onClose, onUpdate, onDelete }: Tas
           {saveAction.error && (
             <p className="mb-3 text-sm text-red-600 dark:text-red-400 text-center">{saveAction.error}</p>
           )}
-          <TaskEditForm key={task.id ?? task.name} task={task} onCancel={stopEditing} onSave={handleSave} />
+          <TaskEditForm key={task.id ?? task.name} task={task} onCancel={stopEditing} onSave={handleSave} categoryOptions={categoryOptions} />
         </>
       ) : (
         <div className="space-y-5">
