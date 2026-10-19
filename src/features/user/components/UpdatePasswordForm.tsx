@@ -4,6 +4,8 @@ import { Button } from "@/components/ui/Button"
 import { UpdateButton } from "@/components/ui/UpdateButton"
 import { useToggle } from "@/hooks/useToggle"
 import { EyeIcon, EyeOffIcon } from "@/components/ui/icons/EyeIcon"
+import { updatePassword } from "@/features/user/services/userService"
+import { getApiErrorMessage } from "@/lib/apiError"
 
 interface UpdatePasswordFormProps {
   userId: string | number
@@ -14,6 +16,7 @@ export function UpdatePasswordForm({ userId, onCancel }: UpdatePasswordFormProps
   const [oldPassword, setOldPassword] = useState("")
   const [newPassword, setNewPassword] = useState("")
   const [repeatPassword, setRepeatPassword] = useState("")
+  const [error, setError] = useState<string | null>(null)
   const { visible, toggle } = useToggle(false)
 
   const eyeButton = (
@@ -27,9 +30,23 @@ export function UpdatePasswordForm({ userId, onCancel }: UpdatePasswordFormProps
     </button>
   )
 
-  const handleSubmit = (e: React.SyntheticEvent) => {
+  const handleSubmit = async (e: React.SyntheticEvent) => {
     e.preventDefault()
-    console.log({ userId, newPassword })
+    setError(null)
+    if (!oldPassword || !newPassword) {
+      setError("Completa todos los campos")
+      return
+    }
+    if (newPassword !== repeatPassword) {
+      setError("Las contraseñas nuevas no coinciden")
+      return
+    }
+    try {
+      await updatePassword(userId, oldPassword, newPassword)
+      onCancel()
+    } catch (err) {
+      setError(getApiErrorMessage(err, "No se pudo actualizar la contraseña"))
+    }
   }
 
   return (
@@ -75,6 +92,10 @@ export function UpdatePasswordForm({ userId, onCancel }: UpdatePasswordFormProps
           rightElement={eyeButton}
         />
       </div>
+
+      {error && (
+        <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
+      )}
 
       <div className="flex justify-end gap-3 pt-4 border-t border-gray-100 dark:border-gray-800">
         <Button
