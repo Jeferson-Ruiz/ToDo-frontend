@@ -2,15 +2,27 @@ import { useState } from "react"
 import { Title } from "@/components/ui/Title"
 import { Input } from "@/components/ui/Input"
 import { Button } from "@/components/ui/Button"
+import { requestRecovery } from "@/features/auth/services/authService"
+import { getApiErrorMessage } from "@/lib/apiError"
 
 export function RecoveryRequestForm() {
   const [email, setEmail] = useState("")
   const [sent, setSent] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
-  const handleSubmit = (e: React.SyntheticEvent) => {
+  const handleSubmit = async (e: React.SyntheticEvent) => {
     e.preventDefault()
-    console.log({ email })
-    setSent(true)
+    setError(null)
+    setIsSubmitting(true)
+    try {
+      await requestRecovery(email)
+      setSent(true)
+    } catch (err) {
+      setError(getApiErrorMessage(err, "No se pudo enviar el correo"))
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   if (sent) {
@@ -52,7 +64,8 @@ export function RecoveryRequestForm() {
         value={email}
         onChange={setEmail}
       />
-      <Button type="submit">Enviar instrucciones</Button>
+      {error && <p className="text-sm text-red-600 dark:text-red-400 text-center">{error}</p>}
+      <Button type="submit" disabled={isSubmitting}>{isSubmitting ? "Enviando..." : "Enviar instrucciones"}</Button>
     </form>
   )
 }
